@@ -1,0 +1,23 @@
+#gameBoundary {
+  border: 2px solid black;
+  width: 800px;
+  height: 600px;
+  margin: 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#gameCharacter {
+  border-radius: 50%;
+  border: 2px solid red;
+  width: 60px;
+  height: 60px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
