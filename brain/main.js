@@ -7,7 +7,8 @@ const TerrainProp = {
   CHUNK_ROWS: 16,
   CHUNK_COLS: 16,
   BLOCKS_NUM: 2,
-  RIVERS_WIDTH: 4
+  RIVERS_WIDTH: 4,
+  ROCK_PROBABILITY: 0.04
 };
 
 const Texts = {
@@ -22,6 +23,10 @@ const BlocksProps = {
   GRASS: {
     index: 2, 
     texture: 'url("img/blocks/grass.png")' 
+  },
+  ROCK: {
+    index: 3,
+    texture: 'url("img/blocks/rock.png")'
   }
 };
 
@@ -56,6 +61,15 @@ function generateRandomTilemap() {
 
     y++;
   }
+
+  // Generate Rocks on Grass
+  for (let i = 0; i < TerrainProp.CHUNK_ROWS; i++) {
+    for (let j = 0; j < TerrainProp.CHUNK_COLS; j++) {
+      if (TILEMAP[i][j] === BlocksProps.GRASS.index && Math.random() < TerrainProp.ROCK_PROBABILITY) {
+        TILEMAP[i][j] = BlocksProps.ROCK.index;
+      }
+    }
+  }
 };
 
 function findSafeZones() {
@@ -81,26 +95,27 @@ function movePlayer(rowD, colD, direction) {
   const moveRow = Entities.PLAYER.position.row + rowD;
   const moveCol = Entities.PLAYER.position.col + colD;
 
+  const playerCharacter = document.getElementById('playerCharacter');
+
+  const spritePosition = Entities.PLAYER.sprite[direction];
+  playerCharacter.style.backgroundPosition = spritePosition;
+
   if (
     moveRow >= 0 && moveRow < TerrainProp.CHUNK_ROWS &&
     moveCol >= 0 && moveCol < TerrainProp.CHUNK_COLS &&
-    TILEMAP[moveRow][moveCol] === BlocksProps.GRASS.index
+    TILEMAP[moveRow][moveCol] !== BlocksProps.WATER.index
   ) {
     // const currentCell = Terrain.rows[Entities.PLAYER.position.row].cells[Entities.PLAYER.position.col]; No use yet, maybe important later on
     const newCell = Terrain.rows[moveRow].cells[moveCol];
     
     Entities.PLAYER.position = { row: moveRow, col: moveCol };
 
-    // Move the player and update sprite
-    const playerCharacter = document.getElementById('playerCharacter');
+    // Move the player
     newCell.appendChild(playerCharacter);
-
-    const spritePosition = Entities.PLAYER.sprite[direction];
-    playerCharacter.style.backgroundPosition = spritePosition;
   }
 };
 
-function setPlayerMovement() {
+function setHotkeyFunctions() {
   document.addEventListener('keydown', (ev) => {
     let rowD = 0;
     let colD = 0;
@@ -145,7 +160,6 @@ function startup() {
   // Generate tilemap
   generateRandomTilemap();
 
-  // Generate the table cells
   for (let i = 0; i < TerrainProp.CHUNK_ROWS; i++) {
     const row = document.createElement('tr');
     for (let j = 0; j < TerrainProp.CHUNK_COLS; j++) {
@@ -159,6 +173,9 @@ function startup() {
         case BlocksProps.GRASS.index:
           cell.style.backgroundImage = BlocksProps.GRASS.texture;
           break;
+        case BlocksProps.ROCK.index:
+          cell.style.backgroundImage = BlocksProps.ROCK.texture;
+          break;
       };
 
       row.appendChild(cell);
@@ -167,7 +184,7 @@ function startup() {
   }
 
   spawnPlayer(); // Map must be generated before player spawned
-  setPlayerMovement();
+  setHotkeyFunctions();
 };
 
 startup();
