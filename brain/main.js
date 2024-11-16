@@ -9,8 +9,8 @@ const TerrainProp = {
 };
 
 const BlocksProps = {
-  WATER: { texture: 'url("img/blocks/water")' }, 
-  GRASS: { texture: 'url("img/blocks/grass")' }
+  WATER: { texture: 'url("img/blocks/water.png")' }, 
+  GRASS: { texture: 'url("img/blocks/grass.png")' }
 };
 
 function generateRandomTilemap() {
