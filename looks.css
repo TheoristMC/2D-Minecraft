@@ -6,8 +6,8 @@ body {
 }
 
 td {
-  height: 16px;
-  width: 16px;
+  height: 32px;
+  width: 32px;
   box-sizing: border-box;
 
   background-size: cover;
@@ -18,7 +18,10 @@ td {
 
   height: 75%;
   width: 75%;
-  background-color: red;
+  background-size: cover;
+  background-image: url('img/entities/player_sprite.png');
+  background-repeat: no-repeat;
+  background-position: -1px, 0;
 }
 
 #gameBoundary {

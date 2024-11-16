@@ -2,7 +2,6 @@ const Terrain = document.getElementById('gameBoundary');
 const TILEMAP = [];
 
 // I use alot of objects to remember what i did
-// Make a character movement and improve safezone finding
 
 const TerrainProp = {
   CHUNK_ROWS: 16,
@@ -12,16 +11,25 @@ const TerrainProp = {
 };
 
 const Texts = {
-  
+  NO_WATER_MOVEMENT: 'Oops, you can\'t move in waters!'
 }
 
 const BlocksProps = {
-  WATER: { index: 1, texture: 'url("img/blocks/water.png")' }, 
-  GRASS: { index: 2, texture: 'url("img/blocks/grass.png")' }
+  WATER: { 
+    index: 1, 
+    texture: 'url("img/blocks/water.png")' 
+  }, 
+  GRASS: {
+    index: 2, 
+    texture: 'url("img/blocks/grass.png")' 
+  }
 };
 
 const Entities = {
-  PLAYER: {}
+  PLAYER: { 
+    position: { row: 0, col: 0 },
+    sprite: { down: '-1px, 0', up: '-38px, 0', right: '-108px, 0', left: '-72px, 0' }
+  }
 };
 
 function generateRandomTilemap() {
@@ -62,15 +70,72 @@ function findSafeZones() {
     }
   }
 
-  const formattedZone = { rowNum: mapCenterIndex, locNum: safezones[Math.floor(Math.random() * safezones.length)] };
+  const formattedZone = { 
+    rowNum: mapCenterIndex, 
+    locNum: safezones[Math.floor(Math.random() * safezones.length)] 
+  };
   return formattedZone;
 };
+
+function movePlayer(rowD, colD, direction) {
+  const moveRow = Entities.PLAYER.position.row + rowD;
+  const moveCol = Entities.PLAYER.position.col + colD;
+
+  if (
+    moveRow >= 0 && moveRow < TerrainProp.CHUNK_ROWS &&
+    moveCol >= 0 && moveCol < TerrainProp.CHUNK_COLS &&
+    TILEMAP[moveRow][moveCol] === BlocksProps.GRASS.index
+  ) {
+    // const currentCell = Terrain.rows[Entities.PLAYER.position.row].cells[Entities.PLAYER.position.col]; No use yet, maybe important later on
+    const newCell = Terrain.rows[moveRow].cells[moveCol];
+    
+    Entities.PLAYER.position = { row: moveRow, col: moveCol };
+
+    // Move the player and update sprite
+    const playerCharacter = document.getElementById('playerCharacter');
+    newCell.appendChild(playerCharacter);
+
+    const spritePosition = Entities.PLAYER.sprite[direction];
+    playerCharacter.style.backgroundPosition = spritePosition;
+  }
+};
+
+function setPlayerMovement() {
+  document.addEventListener('keydown', (ev) => {
+    let rowD = 0;
+    let colD = 0;
+    let direction = '';
+
+    switch (ev.key) {
+      case 'ArrowUp':
+        rowD = -1;
+        direction = 'up';
+        break;
+      case 'ArrowDown':
+        rowD = 1;
+        direction = 'down';
+        break;
+      case 'ArrowRight':
+        colD = 1;
+        direction = 'right';
+        break;
+      case 'ArrowLeft':
+        colD = -1;
+        direction = 'left';
+        break;
+    }
+
+    movePlayer(rowD, colD, direction);
+  });
+}
 
 function spawnPlayer() {
   const playerCharacter = document.createElement('div');
   playerCharacter.id = 'playerCharacter';
 
   const { rowNum, locNum } = findSafeZones();
+
+  Entities.PLAYER.position = { row: rowNum, col: locNum };
 
   const targetCell = Terrain.rows[rowNum].cells[locNum];
   targetCell.appendChild(playerCharacter);
@@ -102,6 +167,7 @@ function startup() {
   }
 
   spawnPlayer(); // Map must be generated before player spawned
+  setPlayerMovement();
 };
 
 startup();
