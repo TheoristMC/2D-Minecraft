@@ -1,58 +1,97 @@
 const Terrain = document.getElementById('gameBoundary');
 const TILEMAP = [];
 
+// I use alot of objects to remember what i did
+// Make a character movement and improve safezone finding
+
 const TerrainProp = {
-  rows: 16,
-  cols: 16,
-  numberOfBlocks: 2,
-  riversWidth: 4
+  CHUNK_ROWS: 16,
+  CHUNK_COLS: 16,
+  BLOCKS_NUM: 2,
+  RIVERS_WIDTH: 4
 };
 
+const Texts = {
+  
+}
+
 const BlocksProps = {
-  WATER: { texture: 'url("img/blocks/water.png")' }, 
-  GRASS: { texture: 'url("img/blocks/grass.png")' }
+  WATER: { index: 1, texture: 'url("img/blocks/water.png")' }, 
+  GRASS: { index: 2, texture: 'url("img/blocks/grass.png")' }
+};
+
+const Entities = {
+  PLAYER: {}
 };
 
 function generateRandomTilemap() {
-  for (let i = 0; i < TerrainProp.rows; i++) {
-    TILEMAP.push(Array(TerrainProp.cols).fill(2));
+  // Generate Lands
+  for (let i = 0; i < TerrainProp.CHUNK_ROWS; i++) {
+    TILEMAP.push(Array(TerrainProp.CHUNK_COLS).fill(BlocksProps.GRASS.index));
   }
 
-  let x = Math.floor(Math.random() * TerrainProp.cols);
+  let x = Math.floor(Math.random() * TerrainProp.CHUNK_COLS);
   let y = 0;
 
-  while (y < TerrainProp.rows) {
-    for (let offset = -Math.floor(TerrainProp.riversWidth / 2); offset <= Math.floor(TerrainProp.riversWidth / 2); offset++) {
+  while (y < TerrainProp.CHUNK_ROWS) {
+    // Generate Rivers
+    for (let offset = -Math.floor(TerrainProp.RIVERS_WIDTH / 2); offset <= Math.floor(TerrainProp.RIVERS_WIDTH / 2); offset++) {
       const newX = x + offset;
-      if (newX >= 0 && newX < TerrainProp.cols) {
-        TILEMAP[y][newX] = 1;
+      if (newX >= 0 && newX < TerrainProp.CHUNK_COLS) {
+        TILEMAP[y][newX] = BlocksProps.WATER.index;
       }
     }
 
     const direction = Math.random();
     if (direction < 0.33 && x > 0) x--;
-    else if (direction < 0.66 && x < TerrainProp.cols - 1) x++;
+    else if (direction < 0.66 && x < TerrainProp.CHUNK_COLS - 1) x++;
 
     y++;
   }
-}
+};
+
+function findSafeZones() {
+  const mapCenterIndex = Math.floor((TILEMAP.length - 1) / 2);
+  const mapCenter = TILEMAP[mapCenterIndex];
+  
+  const safezones = [];
+  for (let i = 0; i < mapCenter.length; i++) {
+    const cell = mapCenter[i];
+    if (cell === BlocksProps.GRASS.index) {
+      safezones.push(i);
+    }
+  }
+
+  const formattedZone = { rowNum: mapCenterIndex, locNum: safezones[Math.floor(Math.random() * safezones.length)] };
+  return formattedZone;
+};
+
+function spawnPlayer() {
+  const playerCharacter = document.createElement('div');
+  playerCharacter.id = 'playerCharacter';
+
+  const { rowNum, locNum } = findSafeZones();
+
+  const targetCell = Terrain.rows[rowNum].cells[locNum];
+  targetCell.appendChild(playerCharacter);
+};
 
 function startup() {
   // Generate tilemap
   generateRandomTilemap();
 
   // Generate the table cells
-  for (let i = 0; i < TerrainProp.rows; i++) {
+  for (let i = 0; i < TerrainProp.CHUNK_ROWS; i++) {
     const row = document.createElement('tr');
-    for (let j = 0; j < TerrainProp.cols; j++) {
+    for (let j = 0; j < TerrainProp.CHUNK_COLS; j++) {
       const cell = document.createElement('td');
       const cellValue = TILEMAP[i][j];
 
       switch (cellValue) {
-        case 1:
+        case BlocksProps.WATER.index:
           cell.style.backgroundImage = BlocksProps.WATER.texture;
           break;
-        case 2:
+        case BlocksProps.GRASS.index:
           cell.style.backgroundImage = BlocksProps.GRASS.texture;
           break;
       };
@@ -61,6 +100,8 @@ function startup() {
     }
     Terrain.appendChild(row);
   }
+
+  spawnPlayer(); // Map must be generated before player spawned
 };
 
 startup();

@@ -5,7 +5,7 @@ body {
   height: 100vh;
 }
 
-#gameBoundary td {
+td {
   height: 16px;
   width: 16px;
   box-sizing: border-box;
@@ -13,10 +13,18 @@ body {
   background-size: cover;
 }
 
+#playerCharacter {
+  margin: auto;
+
+  height: 75%;
+  width: 75%;
+  background-color: red;
+}
+
 #gameBoundary {
   border-collapse: collapse;
-  width: 600px;
-  height: 600px;
+  width: 800px;
+  height: 800px;
   margin: 4px
 }
 
