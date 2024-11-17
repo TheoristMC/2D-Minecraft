@@ -3,6 +3,9 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
+
+  background-image: url('img/dirt_bg.webp');
+  background-size: cover;
 }
 
 td {
@@ -28,7 +31,8 @@ td {
   border-collapse: collapse;
   width: 800px;
   height: 800px;
-  margin: 4px
+  margin: 4px;
+  border: 2px solid white;
 }
 
 html, body {

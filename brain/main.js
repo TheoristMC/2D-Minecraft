@@ -72,6 +72,31 @@ function generateRandomTilemap() {
   }
 };
 
+function renderTilemap() {
+  for (let i = 0; i < TerrainProp.CHUNK_ROWS; i++) {
+    const row = document.createElement('tr');
+    for (let j = 0; j < TerrainProp.CHUNK_COLS; j++) {
+      const cell = document.createElement('td');
+      const cellValue = TILEMAP[i][j];
+  
+      switch (cellValue) {
+        case BlocksProps.WATER.index:
+          cell.style.backgroundImage = BlocksProps.WATER.texture;
+          break;
+        case BlocksProps.GRASS.index:
+          cell.style.backgroundImage = BlocksProps.GRASS.texture;
+          break;
+        case BlocksProps.ROCK.index:
+          cell.style.backgroundImage = BlocksProps.ROCK.texture;
+          break;
+      };
+  
+      row.appendChild(cell);
+    }
+    Terrain.appendChild(row);
+  }
+};
+
 function findSafeZones() {
   const mapCenterIndex = Math.floor((TILEMAP.length - 1) / 2);
   const mapCenter = TILEMAP[mapCenterIndex];
@@ -121,22 +146,24 @@ function setHotkeyFunctions() {
     let colD = 0;
     let direction = '';
 
-    switch (ev.key) {
-      case 'ArrowUp':
+    switch (ev.key.toString().toUpperCase()) {
+      case 'ARROWUP':
         rowD = -1;
         direction = 'up';
         break;
-      case 'ArrowDown':
+      case 'ARROWDOWN':
         rowD = 1;
         direction = 'down';
         break;
-      case 'ArrowRight':
+      case 'ARROWRIGHT':
         colD = 1;
         direction = 'right';
         break;
-      case 'ArrowLeft':
+      case 'ARROWLEFT':
         colD = -1;
         direction = 'left';
+        break;
+      case 'N':
         break;
     }
 
@@ -159,32 +186,10 @@ function spawnPlayer() {
 function startup() {
   // Generate tilemap
   generateRandomTilemap();
-
-  for (let i = 0; i < TerrainProp.CHUNK_ROWS; i++) {
-    const row = document.createElement('tr');
-    for (let j = 0; j < TerrainProp.CHUNK_COLS; j++) {
-      const cell = document.createElement('td');
-      const cellValue = TILEMAP[i][j];
-
-      switch (cellValue) {
-        case BlocksProps.WATER.index:
-          cell.style.backgroundImage = BlocksProps.WATER.texture;
-          break;
-        case BlocksProps.GRASS.index:
-          cell.style.backgroundImage = BlocksProps.GRASS.texture;
-          break;
-        case BlocksProps.ROCK.index:
-          cell.style.backgroundImage = BlocksProps.ROCK.texture;
-          break;
-      };
-
-      row.appendChild(cell);
-    }
-    Terrain.appendChild(row);
-  }
+  renderTilemap();
 
   spawnPlayer(); // Map must be generated before player spawned
-  setHotkeyFunctions();
+  setHotkeyFunctions(); 
 };
 
 startup();
