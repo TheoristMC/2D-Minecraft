@@ -27,6 +27,15 @@ td {
   background-position: -1px, 0;
 }
 
+.isAProp {
+  margin: auto;
+
+  height: 75%;
+  width: 75%;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
 #gameBoundary {
   border-collapse: collapse;
   width: 800px;

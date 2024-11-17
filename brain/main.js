@@ -20,14 +20,19 @@ const Blocks = {
   ROCK: {
     index: 3,
     texture: 'url("img/blocks/rock.png")'
+  },
+  WOOD: {
+    isProp: true,
+    texture: 'url("img/blocks/wood.png")'
   }
 };
 
 const Entities = {
   PLAYER: { 
     position: { row: 0, col: 0 },
-    sprite: { down: '-1px, 0', up: '-38px, 0', right: '-108px, 0', left: '-72px, 0' },
-    chunk: { row: 0, col: 0 }
+    sprite: { 90: '-1px, 0', 270: '-38px, 0', 360: '-108px, 0', 180: '-72px, 0' },
+    chunk: { row: 0, col: 0 },
+    rotation: 90
   }
 };
 
@@ -38,7 +43,8 @@ const TerrainProp = {
   
   BLOCKS_NUM: 2,
   RIVERS_WIDTH: 4,
-  ROCK_PROBABILITY: 0.04
+  ROCK_PROBABILITY: 0.04,
+  WOOD_PROBABILITY: 0.018
 };
 
 function generateRandomTilemap() {
@@ -104,6 +110,14 @@ function renderTilemap() {
           cell.style.backgroundImage = Blocks.ROCK.texture;
           break;
       };
+
+      if (cellValue === Blocks.GRASS.index && Math.random() < TerrainProp.WOOD_PROBABILITY) {
+        const woodProp = document.createElement('div');
+        woodProp.classList.add('isAProp');
+        woodProp.style.backgroundImage = Blocks.WOOD.texture;
+
+        cell.appendChild(woodProp);
+      }
   
       row.appendChild(cell);
     }
@@ -123,7 +137,7 @@ function findSafeZones() {
   const safezones = [];
   for (let i = 0; i < TerrainProp.CHUNK_SIZE; i++) {
     const cell = mapCenter[i];
-    if (cell === Blocks.GRASS.index) {
+    if (cell === Blocks.GRASS.index && !Terrain.rows[mapCenterIndex].cells[i].firstElementChild) {
       safezones.push(i);
     }
   }
@@ -148,7 +162,8 @@ function movePlayer(rowD, colD, direction) {
   if (
     moveRow >= 0 && moveRow < TerrainProp.CHUNK_SIZE &&
     moveCol >= 0 && moveCol < TerrainProp.CHUNK_SIZE &&
-    TILEMAP[Entities.PLAYER.chunk.row * (TerrainProp.TERRAIN_COLS / TerrainProp.CHUNK_SIZE) + Entities.PLAYER.chunk.col][moveRow][moveCol] !== Blocks.WATER.index
+    TILEMAP[Entities.PLAYER.chunk.row * (TerrainProp.TERRAIN_COLS / TerrainProp.CHUNK_SIZE) + Entities.PLAYER.chunk.col][moveRow][moveCol] !== Blocks.WATER.index &&
+    !Terrain.rows[moveRow].cells[moveCol].firstElementChild
   ) {
     const newCell = Terrain.rows[moveRow].cells[moveCol];
     Entities.PLAYER.position = { row: moveRow, col: moveCol };
@@ -177,7 +192,7 @@ function movePlayer(rowD, colD, direction) {
       Entities.PLAYER.position.col = (moveCol + TerrainProp.CHUNK_SIZE) % TerrainProp.CHUNK_SIZE;
 
       reRenderTilemap();
-      console.log(`Chunk: ${JSON.stringify(Entities.PLAYER.chunk)}`);
+      console.log(`Entered Chunk: ${Entities.PLAYER.chunk.col}, ${Entities.PLAYER.chunk.row}\nPlayer Position: ${Entities.PLAYER.position.col}, ${Entities.PLAYER.position.row}`);
     } else {
       console.log(Texts.NO_GOING_OUTSIDE_TERRAIN);
     }
@@ -190,24 +205,24 @@ function setHotkeyFunctions() {
     
     let rowD = 0;
     let colD = 0;
-    let direction = '';
+    let direction = 0;
 
     switch (ev.key.toString().toUpperCase()) {
-      case 'ARROWUP':
-        rowD = -1;
-        direction = 'up';
-        break;
       case 'ARROWDOWN':
         rowD = 1;
-        direction = 'down';
-        break;
-      case 'ARROWRIGHT':
-        colD = 1;
-        direction = 'right';
+        direction = 90;
         break;
       case 'ARROWLEFT':
         colD = -1;
-        direction = 'left';
+        direction = 180;
+        break;
+      case 'ARROWUP':
+        rowD = -1;
+        direction = 270;
+        break;
+      case 'ARROWRIGHT':
+        colD = 1;
+        direction = 360;
         break;
       case 'R':
         reRenderTilemap();
