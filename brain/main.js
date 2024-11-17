@@ -125,6 +125,55 @@ function renderTilemap() {
   }
 };
 
+function renderMinimap() {
+  const minimap = document.getElementById('minimap');
+
+  // Setup a canvas (same size as from CSS)
+  const canvas = document.createElement('canvas');
+  canvas.width = 200;
+  canvas.height = 200;
+
+  minimap.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d');
+
+  const scaleX = canvas.width / TerrainProp.TERRAIN_COLS;
+  const scaleY = canvas.height / TerrainProp.TERRAIN_ROWS;
+
+  for (let row = 0; row < TerrainProp.TERRAIN_ROWS / TerrainProp.CHUNK_SIZE; row++) {
+    for (let col = 0; col < TerrainProp.TERRAIN_COLS / TerrainProp.CHUNK_SIZE; col++) {
+      const chunk = TILEMAP[row * (TerrainProp.TERRAIN_COLS / TerrainProp.CHUNK_SIZE) + col];
+
+      for (let i = 0; i < TerrainProp.CHUNK_SIZE; i++) {
+        for (let j = 0; j < TerrainProp.CHUNK_SIZE; j++) {
+          const tile = chunk[i][j];
+          let color;
+
+          switch (tile) {
+            case Blocks.WATER.index:
+              color = 'blue';
+              break;
+            case Blocks.GRASS.index:
+              color = 'green';
+              break;
+            case Blocks.ROCK.index:
+              color = 'gray';
+              break;
+          }
+
+          ctx.fillStyle = color;
+          ctx.fillRect(
+            (col * TerrainProp.CHUNK_SIZE + j) * scaleX,
+            (row * TerrainProp.CHUNK_SIZE + i) * scaleY,
+            scaleX,
+            scaleY
+          );
+        }
+      }
+    }
+  }
+}
+
 function reRenderTilemap() {
   renderTilemap();
   spawnPlayer();
@@ -249,6 +298,7 @@ function startup() {
   // Generate tilemap
   generateRandomTilemap();
   renderTilemap();
+  renderMinimap();
 
   spawnPlayer(); // Map must be generated before player spawned
   setHotkeyFunctions(); 

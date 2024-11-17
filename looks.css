@@ -3,9 +3,15 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
-
+  
   background-image: url('img/dirt_bg.webp');
   background-size: cover;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 td {
@@ -14,6 +20,15 @@ td {
   box-sizing: border-box;
 
   background-size: cover;
+}
+
+.isAProp {
+  margin: auto;
+
+  height: 75%;
+  width: 75%;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 #playerCharacter {
@@ -27,15 +42,6 @@ td {
   background-position: -1px, 0;
 }
 
-.isAProp {
-  margin: auto;
-
-  height: 75%;
-  width: 75%;
-  background-size: cover;
-  background-repeat: no-repeat;
-}
-
 #gameBoundary {
   border-collapse: collapse;
   width: 800px;
@@ -44,8 +50,9 @@ td {
   border: 2px solid white;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+#minimap {
+  width: 200px;
+  height: 200px;
+  border: 2px solid white;
+  margin-bottom: 595px;
 }
