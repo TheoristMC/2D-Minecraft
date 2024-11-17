@@ -1,21 +1,14 @@
 const Terrain = document.getElementById('gameBoundary');
 const TILEMAP = [];
 
-// I use alot of objects to remember what i did
-
-const TerrainProp = {
-  CHUNK_ROWS: 16,
-  CHUNK_COLS: 16,
-  BLOCKS_NUM: 2,
-  RIVERS_WIDTH: 4,
-  ROCK_PROBABILITY: 0.04
-};
+// I use a lot of objects to remember what I did
 
 const Texts = {
-  NO_WATER_MOVEMENT: 'Oops, you can\'t move in waters!'
+  NO_WATER_MOVEMENT: 'Oops, you can\'t move in waters!',
+  NO_GOING_OUTSIDE_TERRAIN: 'Oops, end of the world!'
 }
 
-const BlocksProps = {
+const Blocks = {
   WATER: { 
     index: 1, 
     texture: 'url("img/blocks/water.png")' 
@@ -33,61 +26,82 @@ const BlocksProps = {
 const Entities = {
   PLAYER: { 
     position: { row: 0, col: 0 },
-    sprite: { down: '-1px, 0', up: '-38px, 0', right: '-108px, 0', left: '-72px, 0' }
+    sprite: { down: '-1px, 0', up: '-38px, 0', right: '-108px, 0', left: '-72px, 0' },
+    chunk: { row: 0, col: 0 }
   }
 };
 
+const TerrainProp = {
+  TERRAIN_ROWS: 64,
+  TERRAIN_COLS: 64,
+  CHUNK_SIZE: 16,
+  
+  BLOCKS_NUM: 2,
+  RIVERS_WIDTH: 4,
+  ROCK_PROBABILITY: 0.04
+};
+
 function generateRandomTilemap() {
-  // Generate Lands
-  for (let i = 0; i < TerrainProp.CHUNK_ROWS; i++) {
-    TILEMAP.push(Array(TerrainProp.CHUNK_COLS).fill(BlocksProps.GRASS.index));
-  }
+  for (let row = 0; row < TerrainProp.TERRAIN_ROWS / TerrainProp.CHUNK_SIZE; row++) {
+    for (let col = 0; col < TerrainProp.TERRAIN_COLS / TerrainProp.CHUNK_SIZE; col++) {
+      const chunkArr = [];
 
-  let x = Math.floor(Math.random() * TerrainProp.CHUNK_COLS);
-  let y = 0;
-
-  while (y < TerrainProp.CHUNK_ROWS) {
-    // Generate Rivers
-    for (let offset = -Math.floor(TerrainProp.RIVERS_WIDTH / 2); offset <= Math.floor(TerrainProp.RIVERS_WIDTH / 2); offset++) {
-      const newX = x + offset;
-      if (newX >= 0 && newX < TerrainProp.CHUNK_COLS) {
-        TILEMAP[y][newX] = BlocksProps.WATER.index;
+      // Generate Lands
+      for (let i = 0; i < TerrainProp.CHUNK_SIZE; i++) {
+        chunkArr.push(Array(TerrainProp.CHUNK_SIZE).fill(Blocks.GRASS.index));
       }
-    }
 
-    const direction = Math.random();
-    if (direction < 0.33 && x > 0) x--;
-    else if (direction < 0.66 && x < TerrainProp.CHUNK_COLS - 1) x++;
+      let x = Math.floor(Math.random() * TerrainProp.CHUNK_SIZE);
+      let y = 0;
 
-    y++;
-  }
+      while (y < TerrainProp.CHUNK_SIZE) {
+        // Generate Rivers
+        for (let offset = -Math.floor(TerrainProp.RIVERS_WIDTH / 2); offset <= Math.floor(TerrainProp.RIVERS_WIDTH / 2); offset++) {
+          const newX = x + offset;
+          if (newX >= 0 && newX < TerrainProp.CHUNK_SIZE) {
+            chunkArr[y][newX] = Blocks.WATER.index;
+          }
+        }
 
-  // Generate Rocks on Grass
-  for (let i = 0; i < TerrainProp.CHUNK_ROWS; i++) {
-    for (let j = 0; j < TerrainProp.CHUNK_COLS; j++) {
-      if (TILEMAP[i][j] === BlocksProps.GRASS.index && Math.random() < TerrainProp.ROCK_PROBABILITY) {
-        TILEMAP[i][j] = BlocksProps.ROCK.index;
+        const direction = Math.random();
+        if (direction < 0.33 && x > 0) x--;
+        else if (direction < 0.66 && x < TerrainProp.CHUNK_SIZE - 1) x++;
+
+        y++;
       }
+
+      // Generate Rocks on Grass
+      for (let i = 0; i < TerrainProp.CHUNK_SIZE; i++) {
+        for (let j = 0; j < TerrainProp.CHUNK_SIZE; j++) {
+          if (chunkArr[i][j] === Blocks.GRASS.index && Math.random() < TerrainProp.ROCK_PROBABILITY) {
+            chunkArr[i][j] = Blocks.ROCK.index;
+          }
+        }
+      }
+
+      TILEMAP.push(chunkArr);
     }
   }
 };
 
 function renderTilemap() {
-  for (let i = 0; i < TerrainProp.CHUNK_ROWS; i++) {
+  Terrain.innerHTML = ''; // Clear current map to replace with the new one
+
+  for (let i = 0; i < TerrainProp.CHUNK_SIZE; i++) {
     const row = document.createElement('tr');
-    for (let j = 0; j < TerrainProp.CHUNK_COLS; j++) {
+    for (let j = 0; j < TerrainProp.CHUNK_SIZE; j++) {
       const cell = document.createElement('td');
-      const cellValue = TILEMAP[i][j];
+      const cellValue = TILEMAP[Entities.PLAYER.chunk.row * (TerrainProp.TERRAIN_COLS / TerrainProp.CHUNK_SIZE) + Entities.PLAYER.chunk.col][i][j];
   
       switch (cellValue) {
-        case BlocksProps.WATER.index:
-          cell.style.backgroundImage = BlocksProps.WATER.texture;
+        case Blocks.WATER.index:
+          cell.style.backgroundImage = Blocks.WATER.texture;
           break;
-        case BlocksProps.GRASS.index:
-          cell.style.backgroundImage = BlocksProps.GRASS.texture;
+        case Blocks.GRASS.index:
+          cell.style.backgroundImage = Blocks.GRASS.texture;
           break;
-        case BlocksProps.ROCK.index:
-          cell.style.backgroundImage = BlocksProps.ROCK.texture;
+        case Blocks.ROCK.index:
+          cell.style.backgroundImage = Blocks.ROCK.texture;
           break;
       };
   
@@ -97,14 +111,19 @@ function renderTilemap() {
   }
 };
 
+function reRenderTilemap() {
+  renderTilemap();
+  spawnPlayer();
+}
+
 function findSafeZones() {
-  const mapCenterIndex = Math.floor((TILEMAP.length - 1) / 2);
-  const mapCenter = TILEMAP[mapCenterIndex];
+  const mapCenterIndex = Math.floor(TerrainProp.CHUNK_SIZE / 2);
+  const mapCenter = TILEMAP[Entities.PLAYER.chunk.row * (TerrainProp.TERRAIN_COLS / TerrainProp.CHUNK_SIZE) + Entities.PLAYER.chunk.col][mapCenterIndex];
   
   const safezones = [];
-  for (let i = 0; i < mapCenter.length; i++) {
+  for (let i = 0; i < TerrainProp.CHUNK_SIZE; i++) {
     const cell = mapCenter[i];
-    if (cell === BlocksProps.GRASS.index) {
+    if (cell === Blocks.GRASS.index) {
       safezones.push(i);
     }
   }
@@ -125,23 +144,50 @@ function movePlayer(rowD, colD, direction) {
   const spritePosition = Entities.PLAYER.sprite[direction];
   playerCharacter.style.backgroundPosition = spritePosition;
 
+  // Check if movement stays within the current chunk
   if (
-    moveRow >= 0 && moveRow < TerrainProp.CHUNK_ROWS &&
-    moveCol >= 0 && moveCol < TerrainProp.CHUNK_COLS &&
-    TILEMAP[moveRow][moveCol] !== BlocksProps.WATER.index
+    moveRow >= 0 && moveRow < TerrainProp.CHUNK_SIZE &&
+    moveCol >= 0 && moveCol < TerrainProp.CHUNK_SIZE &&
+    TILEMAP[Entities.PLAYER.chunk.row * (TerrainProp.TERRAIN_COLS / TerrainProp.CHUNK_SIZE) + Entities.PLAYER.chunk.col][moveRow][moveCol] !== Blocks.WATER.index
   ) {
-    // const currentCell = Terrain.rows[Entities.PLAYER.position.row].cells[Entities.PLAYER.position.col]; No use yet, maybe important later on
     const newCell = Terrain.rows[moveRow].cells[moveCol];
-    
     Entities.PLAYER.position = { row: moveRow, col: moveCol };
 
     // Move the player
     newCell.appendChild(playerCharacter);
+  } else if (
+    moveRow < 0 || moveRow >= TerrainProp.CHUNK_SIZE ||
+    moveCol < 0 || moveCol >= TerrainProp.CHUNK_SIZE
+  ) {
+    const chunkRowOffset = Math.floor(moveRow / TerrainProp.CHUNK_SIZE);
+    const chunkColOffset = Math.floor(moveCol / TerrainProp.CHUNK_SIZE);
+
+    const newChunkRow = Entities.PLAYER.chunk.row + chunkRowOffset;
+    const newChunkCol = Entities.PLAYER.chunk.col + chunkColOffset;
+
+    // Check if the new chunk is within terrain
+    if (
+      newChunkRow >= 0 && newChunkRow < TerrainProp.TERRAIN_ROWS / TerrainProp.CHUNK_SIZE &&
+      newChunkCol >= 0 && newChunkCol < TerrainProp.TERRAIN_COLS / TerrainProp.CHUNK_SIZE
+    ) {
+      Entities.PLAYER.chunk.row = newChunkRow;
+      Entities.PLAYER.chunk.col = newChunkCol;
+
+      Entities.PLAYER.position.row = (moveRow + TerrainProp.CHUNK_SIZE) % TerrainProp.CHUNK_SIZE;
+      Entities.PLAYER.position.col = (moveCol + TerrainProp.CHUNK_SIZE) % TerrainProp.CHUNK_SIZE;
+
+      reRenderTilemap();
+      console.log(`Chunk: ${JSON.stringify(Entities.PLAYER.chunk)}`);
+    } else {
+      console.log(Texts.NO_GOING_OUTSIDE_TERRAIN);
+    }
   }
 };
 
 function setHotkeyFunctions() {
   document.addEventListener('keydown', (ev) => {
+    if (ev.repeat) return; // Fix Issue (holding key repeats the event causing immediate walking)
+    
     let rowD = 0;
     let colD = 0;
     let direction = '';
@@ -163,7 +209,8 @@ function setHotkeyFunctions() {
         colD = -1;
         direction = 'left';
         break;
-      case 'N':
+      case 'R':
+        reRenderTilemap();
         break;
     }
 
